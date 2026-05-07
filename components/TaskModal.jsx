@@ -191,7 +191,13 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
                   className="w-full h-12 bg-white border-2 border-slate-200 rounded-2xl text-[14.5px] font-semibold text-slate-700 outline-none hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-50 shadow-sm cursor-pointer transition-all"
-                  style={{ colorScheme: "light", padding: "0 28px" }}
+                  style={{ 
+                    colorScheme: "light", 
+                    padding: "0 28px", 
+                    display: "block", 
+                    boxSizing: "border-box",
+                    minWidth: "0" // Mobilde taşmayı önlemek için
+                  }}
                 />
               </div>
 
