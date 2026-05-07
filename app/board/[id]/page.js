@@ -520,15 +520,8 @@ export default function BoardPage() {
       <Sidebar user={user} />
       <main className="main-content" style={{ display: "flex", flexDirection: "column" }}>
         {/* Board Header */}
-        <div style={{
-          padding: "16px 32px",
-          borderBottom: "1px solid rgba(0,0,0,0.06)",
-          background: "white",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div className="board-header-premium">
+          <div className="board-header-left">
             <button
               className="btn btn-ghost btn-icon"
               onClick={() => router.push("/dashboard")}
@@ -537,24 +530,25 @@ export default function BoardPage() {
               <ArrowLeft size={18} />
             </button>
             <div>
-              <h1 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#0f172a" }}>{board?.title}</h1>
-              <p style={{ fontSize: "0.75rem", color: "#94a3b8", marginTop: "2px" }}>
+              <h1 className="board-title-text">{board?.title}</h1>
+              <p className="board-subtitle-text">
                 {columns.length} sütun · {tasks.length} görev
               </p>
             </div>
             <button
               onClick={() => setShowSummary(true)}
-              className="btn btn-secondary"
-              style={{ marginLeft: "12px", borderRadius: "10px", fontSize: "0.9rem", padding: "8px 28px" }}
+              className="btn btn-secondary btn-summary-mobile"
             >
-              <BarChart3 size={18} /> Özet
+              <BarChart3 size={18} /> <span>Özet</span>
             </button>
           </div>
-          <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
+          <div className="board-header-right">
             <MemberList boardId={boardId} currentUserId={user?.id} />
-            <div style={{ width: "1px", height: "28px", background: "#e2e8f0" }} />
-            <SearchBar value={searchQuery} onChange={setSearchQuery} />
-            <FilterPanel filters={filters} onFiltersChange={setFilters} tasks={tasks} members={members} />
+            <div className="header-separator" />
+            <div className="search-filter-group">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+              <FilterPanel filters={filters} onFiltersChange={setFilters} tasks={tasks} members={members} />
+            </div>
           </div>
         </div>
 
@@ -649,6 +643,7 @@ export default function BoardPage() {
           <TaskModal
             task={selectedTask}
             boardId={boardId}
+            boardTitle={board?.title}
             onClose={() => setSelectedTask(null)}
             onUpdate={(t) => setTasks(tasks.map((x) => (x.id === t.id ? t : x)))}
             onDelete={(id) => setTasks(tasks.filter((x) => x.id !== id))}
@@ -708,6 +703,7 @@ export default function BoardPage() {
           <div className="modal-overlay" onClick={() => setShowSummary(false)} style={{ zIndex: 100 }}>
             <div
               onClick={e => e.stopPropagation()}
+              className="modal-content summary-modal-premium"
               style={{
                 background: "white",
                 borderRadius: "20px",
@@ -741,68 +737,71 @@ export default function BoardPage() {
               </div>
 
               {/* 2. STAT CARDS */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+              <div className="summary-grid-container">
                 <div
-                  onClick={() => scrollToColumnByType('done')}
-                  style={{ background: "#f0fdf4", border: "1px solid #dcfce7", borderRadius: "14px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "8px", cursor: "pointer", transition: "all 0.15s ease" }}
+                  onClick={() => { scrollToColumnByType('done'); setShowSummary(false); }}
+                  className="summary-card"
+                  style={{ background: "#f0fdf4", border: "1px solid #dcfce7", cursor: "pointer", display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.15s ease" }}
                   onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(22,163,74,0.15)'; }}
                   onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div className="summary-card-header">
                     <CheckCircle2 size={14} color="#16a34a" strokeWidth={2.5} />
                     <span style={{ fontSize: "0.6rem", fontWeight: 900, color: "#16a34a", letterSpacing: "0.12em", textTransform: "uppercase" }}>Tamamlanan</span>
                   </div>
-                  <p style={{ fontSize: "2rem", lineHeight: 1, fontWeight: 700, color: "#15803d", fontFamily: "Georgia, serif" }}>{summaryStats.doneCount}</p>
-                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#22c55e" }}>görev tamamlandı</p>
+                  <p style={{ fontSize: "2rem", lineHeight: 1, fontWeight: 700, color: "#15803d", fontFamily: "Georgia, serif", margin: "0" }}>{summaryStats.doneCount}</p>
+                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#22c55e", margin: "0" }}>görev tamamlandı</p>
                 </div>
 
-                <div style={{ background: "#eff6ff", border: "1px solid #dbeafe", borderRadius: "14px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div className="summary-card" style={{ background: "#eff6ff", border: "1px solid #dbeafe", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <div className="summary-card-header">
                     <ClipboardList size={14} color="#2563eb" strokeWidth={2.5} />
                     <span style={{ fontSize: "0.6rem", fontWeight: 900, color: "#2563eb", letterSpacing: "0.12em", textTransform: "uppercase" }}>Toplam</span>
                   </div>
-                  <p style={{ fontSize: "2rem", lineHeight: 1, fontWeight: 700, color: "#1d4ed8", fontFamily: "Georgia, serif" }}>{summaryStats.totalCards}</p>
-                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#3b82f6" }}>görev oluşturuldu</p>
+                  <p style={{ fontSize: "2rem", lineHeight: 1, fontWeight: 700, color: "#1d4ed8", fontFamily: "Georgia, serif", margin: "0" }}>{summaryStats.totalCards}</p>
+                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#3b82f6", margin: "0" }}>görev oluşturuldu</p>
                 </div>
 
                 <div
-                  onClick={() => scrollToColumnByType('inProgress')}
-                  style={{ background: "#fefce8", border: "1px solid #fef08a", borderRadius: "14px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "8px", cursor: "pointer", transition: "all 0.15s ease" }}
+                  onClick={() => { scrollToColumnByType('inProgress'); setShowSummary(false); }}
+                  className="summary-card"
+                  style={{ background: "#fefce8", border: "1px solid #fef08a", cursor: "pointer", display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.15s ease" }}
                   onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(202,138,4,0.15)'; }}
                   onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div className="summary-card-header">
                     <PencilLine size={14} color="#ca8a04" strokeWidth={2.5} />
                     <span style={{ fontSize: "0.6rem", fontWeight: 900, color: "#ca8a04", letterSpacing: "0.12em", textTransform: "uppercase" }}>Devam Eden</span>
                   </div>
-                  <p style={{ fontSize: "2rem", lineHeight: 1, fontWeight: 700, color: "#a16207", fontFamily: "Georgia, serif" }}>{summaryStats.inProgressCount}</p>
-                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#eab308" }}>işlem yapılıyor</p>
+                  <p style={{ fontSize: "2rem", lineHeight: 1, fontWeight: 700, color: "#a16207", fontFamily: "Georgia, serif", margin: "0" }}>{summaryStats.inProgressCount}</p>
+                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#eab308", margin: "0" }}>işlem yapılıyor</p>
                 </div>
 
                 <div
-                  onClick={() => scrollToColumnByType('upcoming')}
-                  style={{ background: "#fff1f2", border: "1px solid #ffe4e6", borderRadius: "14px", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "8px", cursor: "pointer", transition: "all 0.15s ease" }}
+                  onClick={() => { scrollToColumnByType('upcoming'); setShowSummary(false); }}
+                  className="summary-card"
+                  style={{ background: "#fff1f2", border: "1px solid #ffe4e6", cursor: "pointer", display: "flex", flexDirection: "column", gap: "8px", transition: "all 0.15s ease" }}
                   onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(225,29,72,0.15)'; }}
                   onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div className="summary-card-header">
                     <Clock size={14} color="#e11d48" strokeWidth={2.5} />
                     <span style={{ fontSize: "0.6rem", fontWeight: 900, color: "#e11d48", letterSpacing: "0.12em", textTransform: "uppercase" }}>Yaklaşan</span>
                   </div>
-                  <p style={{ fontSize: "2rem", lineHeight: 1, fontWeight: 700, color: "#be123c", fontFamily: "Georgia, serif" }}>{summaryStats.upcomingCount}</p>
-                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#f43f5e" }}>vade yaklaşıyor</p>
+                  <p style={{ fontSize: "2rem", lineHeight: 1, fontWeight: 700, color: "#be123c", fontFamily: "Georgia, serif", margin: "0" }}>{summaryStats.upcomingCount}</p>
+                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#f43f5e", margin: "0" }}>vade yaklaşıyor</p>
                 </div>
               </div>
 
               {/* 3. DONUT CHART BÖLÜMÜ */}
-              <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "18px", padding: "24px" }}>
+              <div className="summary-chart-section">
                 <div style={{ marginBottom: "16px" }}>
                   <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#1e293b", marginBottom: "4px", fontFamily: "Georgia, serif" }}>Durum Genel Bakışı</h3>
                   <p style={{ fontSize: "0.8rem", color: "#94a3b8", fontFamily: "Georgia, serif" }}>Projenizin dağılımını görsel olarak analiz edin.</p>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "40px", flexWrap: "wrap" }}>
-                  <div style={{ position: "relative", width: "180px", height: "180px" }}>
+                <div className="chart-container-premium">
+                  <div className="donut-chart-wrapper">
                     <svg viewBox="0 0 36 36" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
                       <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E2E8F0" strokeWidth="3.5" />
                       {(() => {
@@ -813,6 +812,7 @@ export default function BoardPage() {
                         const progPct = (summaryStats.inProgressCount / total) * 100;
                         const otherPct = (summaryStats.otherCount / total) * 100;
                         const slices = [];
+                        
                         if (donePct > 0) {
                           slices.push(<circle key="done" cx="18" cy="18" r="15.915" fill="none" stroke="#16a34a" strokeWidth="3.8" strokeDasharray={`${donePct} ${100 - donePct}`} strokeDashoffset={-offset} strokeLinecap="round" />);
                           offset += donePct;
@@ -837,22 +837,22 @@ export default function BoardPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px", minWidth: "200px" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div className="chart-legend-premium">
+                    <div className="legend-item">
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                         <div style={{ width: "14px", height: "14px", borderRadius: "4px", background: "#16a34a" }} />
                         <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#475569" }}>Tamamlanan</span>
                       </div>
                       <span style={{ fontSize: "1rem", fontWeight: 800, color: "#1e293b" }}>{summaryStats.doneCount}</span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div className="legend-item">
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                         <div style={{ width: "14px", height: "14px", borderRadius: "4px", background: "#a855f7" }} />
                         <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#475569" }}>Yapılacak</span>
                       </div>
                       <span style={{ fontSize: "1rem", fontWeight: 800, color: "#1e293b" }}>{summaryStats.todoCount}</span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div className="legend-item">
                       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                         <div style={{ width: "14px", height: "14px", borderRadius: "4px", background: "#ca8a04" }} />
                         <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#475569" }}>Devam Eden</span>
@@ -860,7 +860,7 @@ export default function BoardPage() {
                       <span style={{ fontSize: "1rem", fontWeight: 800, color: "#1e293b" }}>{summaryStats.inProgressCount}</span>
                     </div>
                     {summaryStats.otherCount > 0 && (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div className="legend-item">
                         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                           <div style={{ width: "14px", height: "14px", borderRadius: "4px", background: "#94a3b8" }} />
                           <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#475569" }}>Diğer</span>

@@ -43,6 +43,7 @@ export default function CalendarPage() {
         .from("boards")
         .select(`
           id, 
+          title,
           type,
           columns (
             id, 
@@ -68,7 +69,7 @@ export default function CalendarPage() {
         
         const columnTitle = column?.title.toLowerCase() || "";
         const isCompleted = doneKeywords.some(keyword => columnTitle.includes(keyword));
-        return { ...task, isCompleted, colors };
+        return { ...task, isCompleted, colors, board_title: board?.title };
       });
 
       setTasks(formattedTasks);
@@ -259,6 +260,7 @@ export default function CalendarPage() {
       {selectedTask && (
         <TaskModal
           task={selectedTask}
+          boardTitle={selectedTask.board_title}
           teamMembers={teamMembers}
           onClose={() => setSelectedTask(null)}
           onUpdate={(updatedTask) => {

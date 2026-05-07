@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { X, Save, Trash2, AlignLeft, Calendar, Flag, User } from "lucide-react";
 import { PRIORITIES } from "@/lib/utils";
 
-export default function TaskModal({ task, boardId, onClose, onUpdate, onDelete, teamMembers: propTeamMembers }) {
+export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate, onDelete, teamMembers: propTeamMembers }) {
   const [title, setTitle] = useState(task.title || "");
   const [description, setDescription] = useState(task.description_html || "");
   const [dueDate, setDueDate] = useState(task.due_date ? task.due_date.split('T')[0] : "");
@@ -69,8 +69,15 @@ export default function TaskModal({ task, boardId, onClose, onUpdate, onDelete, 
           <X size={24} strokeWidth={2.5} />
         </button>
 
-        {/* ANA İÇERİK - Modal küçüldüğü için boşluklar orantılı azaltıldı */}
+        {/* ANA İÇERİK */}
         <div style={{ padding: "40px 48px", overflowY: "auto", flex: 1 }}>
+
+          {/* Breadcrumb - Board İsmi */}
+          <div style={{ marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "1px" }}>Panolar</span>
+            <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#cbd5e1" }}>/</span>
+            <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "1px", background: "rgba(99, 102, 241, 0.1)", padding: "2px 8px", borderRadius: "6px" }}>{boardTitle || "Pano"}</span>
+          </div>
 
           {/* Başlık Bölümü */}
           <div style={{ marginBottom: "28px" }}>
