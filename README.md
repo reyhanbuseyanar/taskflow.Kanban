@@ -1,4 +1,4 @@
-# 🚀 TaskFlow: Premium Kanban & Project Management
+# TaskFlow: Premium Kanban & Project Management
 
 TaskFlow, modern ekipler için tasarlanmış, hız ve estetik odaklı, gerçek zamanlı bir proje yönetim uygulamasıdır. **Next.js**, **Supabase** ve **dnd-kit** kullanılarak geliştirilen bu platform, hem masaüstü hem de mobil cihazlarda kusursuz bir kullanıcı deneyimi sunar.
 
@@ -11,7 +11,7 @@ TaskFlow, modern ekipler için tasarlanmış, hız ve estetik odaklı, gerçek z
 - **Icons:** [Lucide React](https://lucide.dev/)
 - **Animations:** Canvas Confetti & CSS Transitions
 
-## 📦 Kütüphane Seçim Kararları (Rasyoneller)
+## Kütüphane Seçim Kararları (Rasyoneller)
 
 ### 1. dnd-kit (Sürükle-Bırak)
 *Neden seçildi?*
@@ -31,13 +31,12 @@ TaskFlow, modern ekipler için tasarlanmış, hız ve estetik odaklı, gerçek z
 
 ## ✨ Öne Çıkan Özellikler
 
-- **📱 Mobile-First Tasarım:** Özel mobil alt menü (Bottom Nav) ve parmakla kaydırmaya duyarlı (Snap-scroll) Kanban tahtası.
-- **🔄 Akıllı Sıralama Mantığı:** Kartlar arasında `float` tabanlı pozisyon hesaplaması ile milimetrik ve kalıcı sıralama.
-- **📊 Dashboard İstatistikleri:** Toplam görev ve acil vadesi yaklaşan görevlerin anlık takibi.
-- **📦 Arşivleme Sistemi:** Tamamlanan veya gizlenmesi gereken panolar için özel arşiv yönetim paneli.
+- **Mobile-First Tasarım:** Özel mobil alt menü (Bottom Nav) ve parmakla kaydırmaya duyarlı (Snap-scroll) Kanban tahtası.
+- **Akıllı Sıralama Mantığı:** Kartlar arasında `float` tabanlı pozisyon hesaplaması ile milimetrik ve kalıcı sıralama.
+- **Dashboard İstatistikleri:** Toplam görev ve acil vadesi yaklaşan görevlerin anlık takibi.
+- **Arşivleme Sistemi:** Tamamlanan veya gizlenmesi gereken panolar için özel arşiv yönetim paneli.
 - **👥 Ekip İşbirliği:** Pano paylaşımı ve her kullanıcıya özel avatar desteği.
-- **🎉 Etkileşimli Deneyim:** Sütun tamamlandığında veya görevler bittiğinde tetiklenen konfeti efektleri.
-
+  
 ## 🚀 Kurulum
 
 1. Depoyu klonlayın:
@@ -156,7 +155,7 @@ Veri mutasyonlarında (kart taşıma, güncelleme, silme) **Supabase SDK**'nın 
 - **Güvenlik:** Tüm veritabanı işlemleri Supabase'in Row Level Security (RLS) politikalarıyla korunmaktadır.
 - **Ölçeklenebilirlik:** Proje, kurumsal ölçekte binlerce kartı ve kullanıcıyı anlık olarak yönetebilecek (scalable) bir altyapı üzerine inşa edilmiştir.
 
-## 🚀 Projeyi Başlatma & Demo (How to Run)
+## Projeyi Başlatma & Demo (How to Run)
 
 Uygulamayı yerel makinenizde çalıştırmak veya demo olarak incelemek için şu adımları izleyin:
 
