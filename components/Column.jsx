@@ -50,7 +50,7 @@ export default function Column({
     if (!newTaskTitle.trim()) return;
     onAddTask(column.id, newTaskTitle.trim());
     setNewTaskTitle("");
-    // setShowAddTask(false); // Kaldırıldı: Kullanıcı seri şekilde Enter'a basarak birden fazla kart ekleyebilir
+    setShowAddTask(false);
   };
 
   const handleRename = () => {
@@ -71,8 +71,8 @@ export default function Column({
     return null;
   };
 
-  const accentColor = (column.color && column.color !== "#94a3b8") 
-    ? column.color 
+  const accentColor = (column.color && column.color !== "#94a3b8")
+    ? column.color
     : (getColumnAccent() || "#94a3b8");
 
   return (
@@ -133,7 +133,7 @@ export default function Column({
           >
             <Plus size={18} />
           </button>
-          
+
           <div style={{ position: "relative" }}>
             <button
               className="btn btn-ghost btn-icon"
@@ -143,48 +143,48 @@ export default function Column({
               <MoreHorizontal size={16} />
             </button>
 
-          {showMenu && (
-            <div
-              style={{
-                position: "absolute",
-                right: 0,
-                top: "100%",
-                background: "var(--bg-secondary)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "var(--radius-sm)",
-                boxShadow: "var(--shadow-lg)",
-                zIndex: 50,
-                minWidth: 160,
-                padding: 4,
-              }}
-            >
-              <button
-                className="btn btn-ghost"
-                style={{ width: "100%", justifyContent: "flex-start", fontSize: "0.82rem" }}
-                onClick={() => {
-                  setIsEditing(true);
-                  setShowMenu(false);
-                }}
-              >
-                <Pencil size={14} /> Yeniden Adlandır
-              </button>
-              <button
-                className="btn btn-ghost"
+            {showMenu && (
+              <div
                 style={{
-                  width: "100%",
-                  justifyContent: "flex-start",
-                  fontSize: "0.82rem",
-                  color: "var(--danger)",
-                }}
-                onClick={() => {
-                  onDeleteColumn(column.id);
-                  setShowMenu(false);
+                  position: "absolute",
+                  right: 0,
+                  top: "100%",
+                  background: "var(--bg-secondary)",
+                  border: "1px solid var(--border-color)",
+                  borderRadius: "var(--radius-sm)",
+                  boxShadow: "var(--shadow-lg)",
+                  zIndex: 50,
+                  minWidth: 160,
+                  padding: 4,
                 }}
               >
-                <Trash2 size={14} /> Sütunu Sil
-              </button>
-            </div>
-          )}
+                <button
+                  className="btn btn-ghost"
+                  style={{ width: "100%", justifyContent: "flex-start", fontSize: "0.82rem" }}
+                  onClick={() => {
+                    setIsEditing(true);
+                    setShowMenu(false);
+                  }}
+                >
+                  <Pencil size={14} /> Yeniden Adlandır
+                </button>
+                <button
+                  className="btn btn-ghost"
+                  style={{
+                    width: "100%",
+                    justifyContent: "flex-start",
+                    fontSize: "0.82rem",
+                    color: "var(--danger)",
+                  }}
+                  onClick={() => {
+                    onDeleteColumn(column.id);
+                    setShowMenu(false);
+                  }}
+                >
+                  <Trash2 size={14} /> Sütunu Sil
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -235,10 +235,10 @@ export default function Column({
 
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => {
-            const isCompletedColumn = ["tamamlandı", "done", "bitti", "tamamlanan"].some(kw => 
+            const isCompletedColumn = ["tamamlandı", "done", "bitti", "tamamlanan"].some(kw =>
               column.title.toLowerCase().includes(kw)
             );
-            
+
             return (
               <TaskCard
                 key={task.id}
@@ -265,10 +265,8 @@ export default function Column({
               gap: "8px",
             }}
           >
-            <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Plus size={18} color="var(--text-muted)" />
-            </div>
-            Kartı buraya sürükle veya aşağıdan ekle
+
+            Kartı buraya sürükle veya (+) butonuyla ekle
           </div>
         )}
 

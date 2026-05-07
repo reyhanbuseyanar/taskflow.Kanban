@@ -45,7 +45,7 @@ function getInitials(name, email) {
   return "??";
 }
 
-export default function MemberList({ boardId, currentUserId }) {
+export default function MemberList({ boardId, currentUserId, onUpdate }) {
   const router = useRouter();
   const [members, setMembers] = useState([]);
   const [currentProfile, setCurrentProfile] = useState(null);
@@ -240,7 +240,9 @@ export default function MemberList({ boardId, currentUserId }) {
       setMessage({ type: "success", text: "Kullanıcı başarıyla eklendi!" });
       setEmail("");
       setInviteTitle("");
+      setShowInviteForm(false);
       fetchMembers();
+      if (onUpdate) onUpdate();
     } catch (err) {
       setMessage({ type: "error", text: "Hata: " + err.message });
     } finally {
@@ -255,6 +257,7 @@ export default function MemberList({ boardId, currentUserId }) {
       if (error) throw error;
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
       setOpenMenuId(null);
+      if (onUpdate) onUpdate();
     } catch (err) {
       window.alert("Silinemedi: " + err.message);
     }

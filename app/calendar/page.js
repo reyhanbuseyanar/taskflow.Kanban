@@ -13,6 +13,35 @@ const TYPE_COLORS = {
   daily: { main: "#f59e0b", light: "#fffbeb" },
   default: { main: "#94a3b8", light: "#f8fafc" }
 };
+ 
+const AVATAR_BG_COLORS = [
+  "#dbeafe", "#fce7f3", "#d1fae5", "#fef3c7",
+  "#ede9fe", "#ffe4e6", "#cffafe", "#e0e7ff",
+];
+const AVATAR_TEXT_COLORS = [
+  "#2563eb", "#db2777", "#059669", "#d97706",
+  "#7c3aed", "#e11d48", "#0891b2", "#4f46e5",
+];
+ 
+function getColorForUser(userId) {
+  if (!userId) return { bg: "#f1f5f9", text: "#94a3b8" };
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const idx = Math.abs(hash) % AVATAR_BG_COLORS.length;
+  return { bg: AVATAR_BG_COLORS[idx], text: AVATAR_TEXT_COLORS[idx] };
+}
+ 
+function getInitials(name, email) {
+  if (name && name.trim()) {
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  if (email) return email.substring(0, 2).toUpperCase();
+  return "??";
+}
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -91,7 +120,7 @@ export default function CalendarPage() {
         ]);
 
         const memberIds = memberData?.map(m => m.user_id) || [];
-        const uniqueUserIds = [...new Set([...memberIds])];
+        const uniqueUserIds = [...new Set([userId, ...memberIds])];
         
         if (uniqueUserIds.length > 0) {
           const { data: memberProfiles } = await supabase.from("profiles").select("*").in("id", uniqueUserIds);
@@ -251,31 +280,36 @@ export default function CalendarPage() {
                                 </span>
                               </div>
 
-                              {assignee && (
-                                <div 
-                                  style={{
-                                    width: "18px",
-                                    height: "18px",
-                                    borderRadius: "50%",
-                                    background: "var(--accent-light)",
-                                    color: "var(--accent)",
-                                    fontSize: "0.6rem",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    fontWeight: 700,
-                                    flexShrink: 0,
-                                    border: "1px solid white",
-                                    overflow: "hidden"
-                                  }}
-                                >
-                                  {assignee.avatar_url ? (
-                                    <img src={assignee.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                  ) : (
-                                    (assignee.full_name?.[0] || assignee.email?.[0] || "?").toUpperCase()
-                                  )}
-                                </div>
-                              )}
+                              {assignee && (() => {
+                                const color = getColorForUser(task.assignee_id);
+                                const initials = getInitials(assignee.full_name, assignee.email);
+                                return (
+                                  <div 
+                                    style={{
+                                      width: "18px",
+                                      height: "18px",
+                                      borderRadius: "50%",
+                                      background: color.bg,
+                                      color: color.text,
+                                      fontSize: "0.55rem",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      fontWeight: 800,
+                                      flexShrink: 0,
+                                      border: "1.5px solid white",
+                                      overflow: "hidden",
+                                      boxShadow: "0 1px 2px rgba(0,0,0,0.1)"
+                                    }}
+                                  >
+                                    {assignee.avatar_url ? (
+                                      <img src={assignee.avatar_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                    ) : (
+                                      initials
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           );
                         })}

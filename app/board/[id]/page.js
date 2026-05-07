@@ -24,7 +24,6 @@ import Column from "@/components/Column";
 import TaskCard from "@/components/TaskCard";
 import TaskModal from "@/components/TaskModal";
 import Sidebar from "@/components/Sidebar";
-import TrashZone from "@/components/TrashZone";
 import SearchBar from "@/components/SearchBar";
 import FilterPanel from "@/components/FilterPanel";
 import MemberList from "@/components/MemberList";
@@ -44,8 +43,6 @@ export default function BoardPage() {
   const [activeItem, setActiveItem] = useState(null);
   const [activeType, setActiveType] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
-  const [showTrash, setShowTrash] = useState(false);
-  const [isOverTrash, setIsOverTrash] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [user, setUser] = useState(null);
@@ -72,14 +69,28 @@ export default function BoardPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
+    useSensor(TouchSensor, { activationConstraint: { delay: 400, tolerance: 10 } })
   );
 
   // Kanban için en iyisi closestCorners'dır
-  const collisionDetection = useCallback((args) => {
-    if (activeType === "task" && isOverTrash) return rectIntersection(args);
-    return closestCorners(args);
-  }, [activeType, isOverTrash]);
+  const collisionDetection = closestCorners;
+
+  const refreshMembers = useCallback(async (ownerId) => {
+    const { data: mData } = await supabase
+      .from("board_members")
+      .select("user_id")
+      .eq("board_id", boardId);
+
+    const allMemberIds = [...new Set([ownerId || board?.user_id, ...(mData || []).map(m => m.user_id)].filter(Boolean))];
+
+    if (allMemberIds.length > 0) {
+      const { data: pData } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url")
+        .in("id", allMemberIds);
+      setMembers(pData || []);
+    }
+  }, [boardId, board?.user_id]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -126,19 +137,7 @@ export default function BoardPage() {
         setTasks(enrichedTasks);
       }
 
-      // Üyeleri filtreleme için çek
-      const { data: mData } = await supabase
-        .from("board_members")
-        .select("user_id")
-        .eq("board_id", boardId);
-
-      if (mData?.length > 0) {
-        const { data: pData } = await supabase
-          .from("profiles")
-          .select("id, full_name, email, avatar_url")
-          .in("id", mData.map(m => m.user_id));
-        setMembers(pData || []);
-      }
+      await refreshMembers(boardData.user_id);
 
       setLoading(false);
       setIsMounted(true);
@@ -352,7 +351,6 @@ export default function BoardPage() {
     const { active } = e;
     const type = active.data.current?.type;
     setActiveType(type);
-    setShowTrash(type === "task");
     setActiveItem(active.data.current?.[type]);
     previousTasksRef.current = [...tasks];
   };
@@ -362,8 +360,7 @@ export default function BoardPage() {
     const { active, over } = e;
     if (!over) return;
 
-    if (over.id === "trash-zone") { setIsOverTrash(true); return; }
-    setIsOverTrash(false);
+
 
     if (active.data.current?.type !== "task") return;
 
@@ -394,8 +391,7 @@ export default function BoardPage() {
   // ========== SÜRÜKLE-BIRAK: DRAG END ==========
   const handleDragEnd = async (e) => {
     const { active, over } = e;
-    setShowTrash(false);
-    setIsOverTrash(false);
+
     setActiveItem(null);
     setActiveType(null);
 
@@ -405,30 +401,14 @@ export default function BoardPage() {
     }
 
     // ===== ÇÖP KUTUSUNA BIRAKMA =====
-    if (over.id === "trash-zone" && active.data.current?.type === "task") {
-      setTasks((prev) => prev.filter((t) => t.id !== active.id));
 
-      // Sütunun içerisindeki listeden de anında sil (Ekrandan kaybolması için kritik)
-      setColumns(cols => cols.map(c => ({
-        ...c,
-        tasks: c.tasks ? c.tasks.filter(t => t.id !== active.id) : []
-      })));
 
-      try {
-        await supabase.from("checklists").delete().eq("task_id", active.id);
-        const { error } = await supabase.from("tasks").delete().eq("id", active.id);
-        if (error) throw error;
-      } catch (err) {
-        window.alert("Silme hatası: " + err.message);
-        setTasks(previousTasksRef.current);
-        // Hata olursa sütunları da geri al
-        setColumns(previousTasksRef.current ? cols => cols.map(c => ({
-          ...c,
-          tasks: previousTasksRef.current.filter(t => t.column_id === c.id)
-        })) : cols => cols);
-      }
-      return;
-    }
+
+    // Sütunun içerisindeki listeden de anında sil (Ekrandan kaybolması için kritik)
+
+
+
+
 
     // ===== SÜTUN SIRASI DEĞİŞTİRME =====
     if (active.data.current?.type === "column") {
@@ -506,7 +486,6 @@ export default function BoardPage() {
         return;
       }
 
-      // Tamamlandı sütununa atıldıysa ve önceki sütun farklıysa konfeti patlat
       if (activeTask.column_id !== targetColumnId) {
         const colTitle = columns.find((c) => c.id === targetColumnId)?.title?.toLowerCase();
         if (colTitle?.includes("tamamlandı") || colTitle?.includes("done") || colTitle?.includes("bitti")) {
@@ -555,7 +534,7 @@ export default function BoardPage() {
             </button>
           </div>
           <div className="board-header-right" style={{ flexWrap: "wrap", gap: "8px" }}>
-            <MemberList boardId={boardId} currentUserId={user?.id} />
+            <MemberList boardId={boardId} currentUserId={user?.id} onUpdate={refreshMembers} />
             <div className="header-separator" />
             <div className="search-filter-group" style={{ flex: 1, minWidth: "200px" }}>
               <SearchBar value={searchQuery} onChange={setSearchQuery} />
@@ -649,7 +628,7 @@ export default function BoardPage() {
               )}
             </DragOverlay>
 
-            <TrashZone isOver={isOverTrash} show={showTrash} />
+
           </DndContext>
         )}
 
@@ -658,6 +637,7 @@ export default function BoardPage() {
             task={selectedTask}
             boardId={boardId}
             boardTitle={board?.title}
+            teamMembers={members}
             onClose={() => setSelectedTask(null)}
             onUpdate={(t) => setTasks(tasks.map((x) => (x.id === t.id ? t : x)))}
             onDelete={async (id) => {

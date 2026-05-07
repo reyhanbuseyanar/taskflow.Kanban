@@ -7,6 +7,35 @@ import { getDueDateStatus, getDueDateLabel, PRIORITIES } from "@/lib/utils";
 import LabelBadge from "./LabelBadge";
 import { Calendar, CheckSquare, GripVertical, Check } from "lucide-react";
 
+const AVATAR_BG_COLORS = [
+  "#dbeafe", "#fce7f3", "#d1fae5", "#fef3c7",
+  "#ede9fe", "#ffe4e6", "#cffafe", "#e0e7ff",
+];
+const AVATAR_TEXT_COLORS = [
+  "#2563eb", "#db2777", "#059669", "#d97706",
+  "#7c3aed", "#e11d48", "#0891b2", "#4f46e5",
+];
+
+function getColorForUser(userId) {
+  if (!userId) return { bg: "#f1f5f9", text: "#94a3b8" };
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const idx = Math.abs(hash) % AVATAR_BG_COLORS.length;
+  return { bg: AVATAR_BG_COLORS[idx], text: AVATAR_TEXT_COLORS[idx] };
+}
+
+function getInitials(name, email) {
+  if (name && name.trim()) {
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0].substring(0, 2).toUpperCase();
+  }
+  if (email) return email.substring(0, 2).toUpperCase();
+  return "??";
+}
+
 export default function TaskCard({ task, onClick, dimmed, isCompleted }) {
   const {
     attributes,
@@ -130,11 +159,11 @@ export default function TaskCard({ task, onClick, dimmed, isCompleted }) {
             </div>
           )}
 
-          <div 
-            className="task-card-title" 
-            style={{ 
-              display: "flex", 
-              alignItems: "center", 
+          <div
+            className="task-card-title"
+            style={{
+              display: "flex",
+              alignItems: "center",
               gap: "6px",
               textDecoration: isCompleted ? "line-through" : "none",
               opacity: isCompleted ? 0.7 : 1
@@ -186,38 +215,43 @@ export default function TaskCard({ task, onClick, dimmed, isCompleted }) {
               )}
             </div>
 
-            {/* Sorumlu Avatarı */}
-            {task.assignee_profile && (
-              <div
-                title={task.assignee_profile.full_name || task.assignee_profile.email}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  backgroundColor: "#eff6ff",
-                  border: "2px solid white",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.9rem",
-                  fontWeight: 700,
-                  color: "#3b82f6",
-                  overflow: "hidden",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                  flexShrink: 0
-                }}
-              >
-                {task.assignee_profile.avatar_url ? (
-                  <img
-                    src={task.assignee_profile.avatar_url}
-                    alt=""
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                ) : (
-                  (task.assignee_profile.full_name?.[0] || task.assignee_profile.email?.[0] || "?").toUpperCase()
-                )}
-              </div>
-            )}
+            {/* Sorumlu Avatarı - Takım Arkadaşları Stiliyle Aynı */}
+            {task.assignee_profile && (() => {
+              const color = getColorForUser(task.assignee_id);
+              const initials = getInitials(task.assignee_profile.full_name, task.assignee_profile.email);
+
+              return (
+                <div
+                  title={task.assignee_profile.full_name || task.assignee_profile.email}
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    backgroundColor: color.bg,
+                    color: color.text,
+                    border: "2px solid white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    overflow: "hidden",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    flexShrink: 0
+                  }}
+                >
+                  {task.assignee_profile.avatar_url ? (
+                    <img
+                      src={task.assignee_profile.avatar_url}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    initials
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
