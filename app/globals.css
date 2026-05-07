@@ -919,11 +919,17 @@ body {
   }
 
   .add-column-btn {
-    min-width: 85vw;
-    max-width: 85vw;
-    margin-right: 0;
-    background: white;
-    border: 2px dashed #e2e8f0;
+    min-width: 80vw;
+    max-width: 80vw;
+    height: 120px; /* Mobilde daha belirgin olması için yükseklik artırıldı */
+    margin-right: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px dashed #cbd5e1;
+    scroll-snap-align: center; /* Sütunlar gibi ortalanarak kaysın */
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
   }
 
   .mobile-bottom-nav {
