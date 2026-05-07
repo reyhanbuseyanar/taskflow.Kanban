@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { X, Save, Trash2, AlignLeft, Calendar, Flag, User } from "lucide-react";
 import { PRIORITIES } from "@/lib/utils";
- 
+
 const AVATAR_BG_COLORS = [
   "#dbeafe", "#fce7f3", "#d1fae5", "#fef3c7",
   "#ede9fe", "#ffe4e6", "#cffafe", "#e0e7ff",
@@ -13,7 +13,7 @@ const AVATAR_TEXT_COLORS = [
   "#2563eb", "#db2777", "#059669", "#d97706",
   "#7c3aed", "#e11d48", "#0891b2", "#4f46e5",
 ];
- 
+
 function getColorForUser(userId) {
   if (!userId) return { bg: "#f1f5f9", text: "#94a3b8" };
   let hash = 0;
@@ -23,7 +23,7 @@ function getColorForUser(userId) {
   const idx = Math.abs(hash) % AVATAR_BG_COLORS.length;
   return { bg: AVATAR_BG_COLORS[idx], text: AVATAR_TEXT_COLORS[idx] };
 }
- 
+
 function getInitials(name, email) {
   if (name && name.trim()) {
     const parts = name.trim().split(" ");
@@ -46,12 +46,12 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (propTeamMembers) {
+    if (propTeamMembers && propTeamMembers.length > 0) {
       setTeamMembers(propTeamMembers);
-    } else {
+    } else if (boardId) {
       fetchMembers();
     }
-    
+
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
@@ -63,9 +63,9 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
     try {
       const { data: boardData } = await supabase.from("boards").select("user_id").eq("id", boardId).single();
       const { data: mData } = await supabase.from("board_members").select("user_id").eq("board_id", boardId);
-      
+
       const allIds = [...new Set([boardData?.user_id, ...(mData || []).map(m => m.user_id)].filter(Boolean))];
-      
+
       if (allIds.length) {
         const { data: pData } = await supabase.from("profiles").select("id, full_name, email, avatar_url").in("id", allIds);
         if (pData) setTeamMembers(pData);
@@ -113,10 +113,10 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
         </button>
 
         {/* ANA İÇERİK */}
-        <div 
+        <div
           className="overflow-y-auto flex-1"
-          style={{ 
-            padding: isMobile ? "24px 20px 100px" : "40px 48px", 
+          style={{
+            padding: isMobile ? "24px 20px 100px" : "40px 48px",
           }}
         >
 
@@ -190,8 +190,8 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full h-10 bg-white border-2 border-slate-200 rounded-xl text-[13.5px] font-semibold text-slate-700 outline-none hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-50 shadow-sm cursor-pointer transition-all"
-                  style={{ colorScheme: "light", padding: "0 16px" }}
+                  className="w-full h-12 bg-white border-2 border-slate-200 rounded-2xl text-[14.5px] font-semibold text-slate-700 outline-none hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-50 shadow-sm cursor-pointer transition-all"
+                  style={{ colorScheme: "light", padding: "0 28px" }}
                 />
               </div>
 
@@ -212,16 +212,16 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
                       const initials = getInitials(selected?.full_name, selected?.email);
                       return (
                         <>
-                          <div style={{ 
-                            width: "24px", 
-                            height: "24px", 
-                            borderRadius: "50%", 
-                            background: color.bg, 
+                          <div style={{
+                            width: "24px",
+                            height: "24px",
+                            borderRadius: "50%",
+                            background: color.bg,
                             color: color.text,
-                            overflow: "hidden", 
-                            display: "flex", 
-                            alignItems: "center", 
-                            justifyContent: "center", 
+                            overflow: "hidden",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                             fontSize: "0.65rem",
                             fontWeight: 800,
                             border: "1.5px solid white",
@@ -312,16 +312,16 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
                               marginTop: "2px",
                             }}
                           >
-                            <div style={{ 
-                              width: "24px", 
-                              height: "24px", 
-                              borderRadius: "50%", 
-                              background: color.bg, 
+                            <div style={{
+                              width: "24px",
+                              height: "24px",
+                              borderRadius: "50%",
+                              background: color.bg,
                               color: color.text,
-                              overflow: "hidden", 
-                              display: "flex", 
-                              alignItems: "center", 
-                              justifyContent: "center", 
+                              overflow: "hidden",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
                               fontSize: "0.65rem",
                               fontWeight: 800,
                               boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
@@ -355,8 +355,8 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
                   <Save size={16} /> Kaydet
                 </button>
                 <button
-                  onClick={async () => { 
-                    await onDelete(task.id); 
+                  onClick={async () => {
+                    await onDelete(task.id);
                   }}
                   className="w-full h-12 bg-red-50 hover:bg-red-100 text-red-600 text-[14px] font-bold rounded-2xl transition-colors flex items-center justify-center gap-2"
                 >

@@ -76,21 +76,40 @@ export default function BoardPage() {
   const collisionDetection = closestCorners;
 
   const refreshMembers = useCallback(async (ownerId) => {
-    const { data: mData } = await supabase
-      .from("board_members")
-      .select("user_id")
-      .eq("board_id", boardId);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    const allMemberIds = [...new Set([ownerId || board?.user_id, ...(mData || []).map(m => m.user_id)].filter(Boolean))];
+      const [ownerBoards, memberBoards] = await Promise.all([
+        supabase.from("boards").select("id").eq("user_id", user.id),
+        supabase.from("board_members").select("board_id").eq("user_id", user.id)
+      ]);
+      
+      const allBoardIds = new Set([
+        ...(ownerBoards.data || []).map(b => b.id),
+        ...(memberBoards.data || []).map(b => b.board_id)
+      ]);
 
-    if (allMemberIds.length > 0) {
+      let allUserIds = new Set([user.id, ownerId].filter(Boolean));
+      if (allBoardIds.size > 0) {
+        const { data: mData } = await supabase
+          .from("board_members")
+          .select("user_id")
+          .in("board_id", Array.from(allBoardIds));
+        
+        if (mData) {
+          mData.forEach(m => allUserIds.add(m.user_id));
+        }
+      }
+
       const { data: pData } = await supabase
         .from("profiles")
         .select("id, full_name, email, avatar_url")
-        .in("id", allMemberIds);
+        .in("id", Array.from(allUserIds));
+
       setMembers(pData || []);
-    }
-  }, [boardId, board?.user_id]);
+    } catch (err) { console.error(err); }
+  }, [boardId]);
 
   useEffect(() => {
     const fetchData = async () => {
