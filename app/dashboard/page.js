@@ -360,7 +360,14 @@ function DashboardContent() {
     }
 
     if (data) {
-      // Create some default columns for the board so it's not empty
+      // Pano sahibini board_members'a ekle (Senkronizasyon için kritik)
+      await supabase.from("board_members").insert({
+        board_id: data.id,
+        user_id: user.id,
+        role: "owner"
+      });
+
+      // Varsayılan sütunları oluştur
       const defaultCols = ["Yapılacak", "Devam Eden", "Tamamlandı"];
       await supabase.from("columns").insert(defaultCols.map((title, i) => ({ board_id: data.id, title, position: (i + 1) * 1.0 })));
       await fetchData(user.id);
@@ -492,6 +499,15 @@ function DashboardContent() {
     c.tasks.forEach(t => { if (daysUntil(t.due_date) <= 2 && daysUntil(t.due_date) >= 0) urgentCount++; });
   }));
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   if (loading || !isMounted) return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: "#f8fafc" }}>
       <div style={{ width: "36px", height: "36px", border: "3px solid #e2e8f0", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
@@ -504,8 +520,14 @@ function DashboardContent() {
       <main className="main-content" style={{ background: "#f1f5f9", display: "flex", flexDirection: "column" }}>
 
         <div style={{
-          padding: "20px 36px", background: "white", borderBottom: "1px solid #e2e8f0",
-          display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: isMobile ? "16px" : "20px 36px", 
+          background: "white", 
+          borderBottom: "1px solid #e2e8f0",
+          display: "flex", 
+          flexDirection: isMobile ? "column" : "row",
+          justifyContent: "space-between", 
+          alignItems: isMobile ? "flex-start" : "center",
+          gap: isMobile ? "12px" : "0"
         }}>
           <div>
             <h1 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#0f172a" }}>Görev Merkezi</h1>
@@ -514,25 +536,20 @@ function DashboardContent() {
               {urgentCount > 0 && <span style={{ color: "#ef4444", fontWeight: 700 }}> · {urgentCount} acil!</span>}
             </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <MemberList boardId={boards[0]?.id} currentUserId={user?.id} />
-            <div style={{ width: "1px", height: "28px", background: "#e2e8f0" }} />
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "16px",
+            width: isMobile ? "100%" : "auto",
+            justifyContent: isMobile ? "space-between" : "flex-end"
+          }}>
+            <MemberList boardId={null} currentUserId={user?.id} />
             <button
               onClick={() => setShowNewBoard(true)}
               className="btn btn-primary"
+              style={{ width: isMobile ? "100%" : "auto" }}
             >
               <Plus size={18} /> Yeni Ekle
-            </button>
-            <button
-              onClick={handleLogout}
-              style={{
-                background: "#fff1f2", color: "#e11d48", border: "none", padding: "10px 16px",
-                borderRadius: "10px", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer",
-                display: "flex", alignItems: "center", gap: "8px", transition: "all 0.2s ease",
-              }}
-              title="Hesaptan Çıkış Yap"
-            >
-              <LogOut size={16} /> Çıkış
             </button>
           </div>
         </div>

@@ -32,7 +32,8 @@ export default function SearchBar({ value, onChange }) {
         padding: "0 12px",
         transition: "all 0.2s ease",
         boxShadow: focused ? "0 0 0 3px rgba(99,102,241,0.1)" : "none",
-        minWidth: "320px",
+        flex: 1,
+        minWidth: "150px",
       }}
     >
       <Search size={15} color={focused ? "#6366f1" : "#94a3b8"} style={{ flexShrink: 0 }} />

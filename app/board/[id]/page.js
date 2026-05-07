@@ -542,10 +542,10 @@ export default function BoardPage() {
               <BarChart3 size={18} /> <span>Özet</span>
             </button>
           </div>
-          <div className="board-header-right">
+          <div className="board-header-right" style={{ flexWrap: "wrap", gap: "8px" }}>
             <MemberList boardId={boardId} currentUserId={user?.id} />
             <div className="header-separator" />
-            <div className="search-filter-group">
+            <div className="search-filter-group" style={{ flex: 1, minWidth: "200px" }}>
               <SearchBar value={searchQuery} onChange={setSearchQuery} />
               <FilterPanel filters={filters} onFiltersChange={setFilters} tasks={tasks} members={members} />
             </div>
@@ -569,19 +569,21 @@ export default function BoardPage() {
             <div
               className="board-container"
               style={{
-                flex: 1,
-                padding: "24px 32px",
+                padding: "16px 20px",
                 background: "var(--bg-board)",
-                minHeight: 0,
+                minHeight: "calc(100vh - 120px)",
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "flex-start",
+                gap: "24px",
                 overflowX: "auto",
-                justifyContent: columns.length < 3 ? "center" : "flex-start",
               }}
             >
               <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
                 {isFilterActive && tasks.filter(t => isTaskMatching(t)).length === 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '60vh', color: '#64748b', gap: '20px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minWidth: '300px', height: '60vh', color: '#64748b', gap: '20px', padding: '0 40px' }}>
                     <SearchX size={56} color="#cbd5e1" />
-                    <p style={{ fontSize: '1.1rem', fontWeight: 600 }}>Aradığınız kriterlere uygun görev bulunamadı</p>
+                    <p style={{ fontSize: '1.1rem', fontWeight: 600, textAlign: 'center' }}>Aradığınız kriterlere uygun görev bulunamadı</p>
                     <button
                       onClick={() => { setSearchQuery(""); setFilters({ priority: "all", assignee: "all", dueDate: "all" }); }}
                       className="btn btn-secondary"

@@ -22,6 +22,7 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedTask, setSelectedTask] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -34,6 +35,11 @@ export default function CalendarPage() {
       await fetchCalendarData(session.user.id);
     };
     init();
+
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, [router]);
 
   const fetchCalendarData = async (userId) => {
@@ -140,28 +146,48 @@ export default function CalendarPage() {
     <div className="app-layout">
       <Sidebar user={user} />
       <main className="main-content">
-        <div style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}>
-          <header style={{ marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ 
+          padding: window.innerWidth < 768 ? "16px" : "40px", 
+          maxWidth: "1200px", 
+          margin: "0 auto" 
+        }}>
+          <header style={{ 
+            marginBottom: "24px", 
+            display: "flex", 
+            flexDirection: window.innerWidth < 768 ? "column" : "row",
+            justifyContent: "space-between", 
+            alignItems: window.innerWidth < 768 ? "flex-start" : "center",
+            gap: "16px"
+          }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <div style={{ background: "var(--accent)", color: "white", padding: "10px", borderRadius: "12px" }}>
                 <CalendarIcon size={24} />
               </div>
-              <h1 style={{ fontSize: "1.75rem", fontWeight: 800 }}>Etkinlik Takvimi</h1>
+              <h1 style={{ fontSize: window.innerWidth < 768 ? "1.4rem" : "1.75rem", fontWeight: 800 }}>Etkinlik Takvimi</h1>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "16px", background: "var(--bg-secondary)", padding: "8px 16px", borderRadius: "var(--radius-md)", border: "1px solid var(--border-color)" }}>
+            <div style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "16px", 
+              background: "white", 
+              padding: "6px 12px", 
+              borderRadius: "12px", 
+              border: "1px solid var(--border-color)",
+              boxShadow: "0 2px 4px rgba(0,0,0,0.02)"
+            }}>
               <button className="btn btn-ghost btn-icon" onClick={prevMonth}><ChevronLeft size={20} /></button>
-              <span style={{ fontWeight: 700, minWidth: "120px", textAlign: "center" }}>
+              <span style={{ fontWeight: 700, minWidth: "110px", textAlign: "center", fontSize: "0.9rem" }}>
                 {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
               </span>
               <button className="btn btn-ghost btn-icon" onClick={nextMonth}><ChevronRight size={20} /></button>
             </div>
           </header>
 
-          <div className="calendar-container">
-            <div className="calendar-grid" style={{ background: "transparent", gap: "0" }}>
+          <div className="calendar-container" style={{ overflowX: "auto", borderRadius: "12px", border: "1px solid var(--border-color)", background: "white" }}>
+            <div className="calendar-grid" style={{ minWidth: isMobile ? "100%" : "auto", background: "transparent", gap: "0" }}>
               {["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"].map(day => (
-                <div key={day} className="calendar-day-header">{day}</div>
+                <div key={day} className="calendar-day-header" style={{ padding: isMobile ? "8px 4px" : "12px", fontSize: isMobile ? "0.6rem" : "0.75rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>{day}</div>
               ))}
 
               {days.map((day, index) => {
@@ -188,7 +214,12 @@ export default function CalendarPage() {
                     {isToday && (
                       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "3px", background: "#8b5cf6" }} />
                     )}
-                    <div className="calendar-day-number" style={{ color: isToday ? "#6d28d9" : "inherit", fontWeight: isToday ? 800 : 600 }}>{day}</div>
+                    <div className="calendar-day-number" style={{ 
+                      color: isToday ? "#6d28d9" : "inherit", 
+                      fontWeight: isToday ? 800 : 600,
+                      fontSize: isMobile ? "0.7rem" : "0.9rem",
+                      padding: isMobile ? "4px" : "8px"
+                    }}>{day}</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                         {dayTasks.map(task => {
                           const assignee = teamMembers.find(m => m.id === task.assignee_id);
@@ -214,8 +245,8 @@ export default function CalendarPage() {
                               }}
                             >
                               <div style={{ display: "flex", alignItems: "center", gap: "2px", flex: 1, minWidth: 0 }}>
-                                {task.isCompleted && <Check size={12} strokeWidth={3} color="#22c55e" style={{ flexShrink: 0 }} />}
-                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {task.isCompleted && <Check size={10} strokeWidth={3} color="#22c55e" style={{ flexShrink: 0 }} />}
+                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: isMobile ? "0.55rem" : "0.75rem" }}>
                                   {task.title}
                                 </span>
                               </div>

@@ -14,9 +14,15 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [teamMembers, setTeamMembers] = useState(propTeamMembers || []);
   const [saving, setSaving] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (!propTeamMembers) fetchMembers();
+    
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, [boardId, propTeamMembers]);
 
   const fetchMembers = async () => {
@@ -51,10 +57,10 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
   const activePriority = PRIORITIES.find(p => p.id === priority) || PRIORITIES[0];
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6" onClick={onClose}>
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-6 sm:p-6" onClick={onClose}>
 
       <div
-        className="bg-white rounded-[32px] shadow-2xl w-full max-w-[850px] relative overflow-hidden flex flex-col max-h-[95vh]"
+        className="bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl w-[92%] sm:w-full max-w-[850px] relative overflow-hidden flex flex-col max-h-[85vh] sm:max-h-[95vh]"
         style={{ animation: "slideDown 0.15s ease-out" }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -70,7 +76,12 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
         </button>
 
         {/* ANA İÇERİK */}
-        <div style={{ padding: "40px 48px", overflowY: "auto", flex: 1 }}>
+        <div 
+          className="overflow-y-auto flex-1"
+          style={{ 
+            padding: isMobile ? "24px 20px 100px" : "40px 48px", 
+          }}
+        >
 
           {/* Breadcrumb - Board İsmi */}
           <div style={{ marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
@@ -103,12 +114,12 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Görev detaylarını ve notlarınızı buraya ekleyin..."
                 className="w-full flex-1 min-h-[260px] bg-slate-50 border-2 border-slate-100 hover:border-slate-200 rounded-[24px] text-slate-600 text-[14px] leading-relaxed resize-none outline-none focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
-                style={{ padding: "40px" }}
+                style={{ padding: isMobile ? "20px" : "40px" }}
               />
             </div>
 
             {/* SAĞ SÜTUN - Kontroller */}
-            <div style={{ width: "220px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div style={{ width: isMobile ? "100%" : "220px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "20px" }}>
 
               {/* Öncelik */}
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>

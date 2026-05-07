@@ -437,13 +437,14 @@ body {
 /* ===== KANBAN BOARD ===== */
 .board-container {
   display: flex;
-  gap: 20px;
-  padding: 24px 32px;
+  justify-content: flex-start !important;
+  gap: 24px;
+  padding: 16px 20px 40px 20px;
   overflow-x: auto;
   min-height: calc(100vh - 120px);
   align-items: stretch;
   scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
+  WebkitOverflowScrolling: touch;
 }
 
 .board-container::-webkit-scrollbar {
@@ -805,11 +806,11 @@ body {
 
 /* ===== ADD COLUMN BUTTON ===== */
 .add-column-btn {
-  min-width: 320px;
+  min-width: 280px;
   height: 48px;
   border: 2px dashed var(--border-color);
   border-radius: var(--radius-md);
-  background: transparent;
+  background: white;
   color: var(--text-muted);
   font-size: 0.875rem;
   font-weight: 500;
@@ -912,8 +913,17 @@ body {
   }
 
   .column {
-    min-width: calc(100vw - 48px);
-    max-width: calc(100vw - 48px);
+    min-width: 85vw;
+    max-width: 85vw;
+    margin-right: 12px;
+  }
+
+  .add-column-btn {
+    min-width: 85vw;
+    max-width: 85vw;
+    margin-right: 0;
+    background: white;
+    border: 2px dashed #e2e8f0;
   }
 
   .mobile-bottom-nav {
@@ -944,6 +954,10 @@ body {
   }
 
   .mobile-bottom-nav-item-active {
+    color: var(--accent);
+  }
+
+  .mobile-bottom-nav-item:active {
     color: var(--accent);
   }
 
@@ -1045,49 +1059,77 @@ body {
 
 /* MOBILE COMPACT DESIGN (max-width: 768px) */
 @media (max-width: 768px) {
+  .sidebar {
+    display: none; /* Mobilde sidebar'ı gizle */
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding-bottom: 80px; /* Alttaki bar için yer bırak */
+  }
+
   .board-header-premium {
-    padding: 8px 12px;
+    padding: 12px 16px;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
   }
 
   .board-header-left {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: space-between;
     gap: 8px;
   }
 
   .board-header-right {
     width: 100%;
     justify-content: space-between;
-    padding-top: 4px;
-    border-top: 1px solid #f8fafc;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
   }
 
   .search-filter-group {
     flex: 1;
     justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .board-container {
+    gap: 16px;
+    padding: 12px 16px 100px;
+    scroll-snap-type: x mandatory; /* Sütunlar arası akıcı geçiş */
+  }
+
+  .column {
+    min-width: 85vw; /* Sütunlar ekranın %85'ini kaplasın */
+    max-width: 320px;
+    scroll-snap-align: center;
   }
 
   .board-subtitle-text {
-    display: none; /* Mobilde yer kazanmak için altyazıyı gizle */
+    display: none;
   }
 
   .board-title-text {
-    font-size: 1rem;
-    max-width: 120px;
+    font-size: 1.1rem;
+    max-width: 180px;
   }
 
-  .btn-summary-mobile {
-    padding: 6px 10px;
-  }
-  
   .btn-summary-mobile span {
-    display: none; /* Mobilde sadece ikon */
+    display: none;
   }
 
   .header-separator {
     display: none;
+  }
+
+  .calendar-day {
+    min-height: 70px;
+    padding: 4px;
+  }
+
+  .calendar-container {
+    padding: 12px;
+    margin-top: 12px;
   }
 }
 
@@ -1192,4 +1234,15 @@ body {
   .summary-grid-container {
     grid-template-columns: 1fr; /* Çok küçük ekranlarda alt alta */
   }
+}
+
+/* ===== CUSTOM ANIMATIONS ===== */
+@keyframes scaleUp {
+  0% { opacity: 0; transform: translate(-50%, -45%) scale(0.95); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }

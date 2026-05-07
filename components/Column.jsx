@@ -113,14 +113,33 @@ export default function Column({
           <span className="column-count">{tasks.length}</span>
         </div>
 
-        <div style={{ position: "relative" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
           <button
             className="btn btn-ghost btn-icon"
-            onClick={() => setShowMenu(!showMenu)}
-            style={{ width: 28, height: 28 }}
+            onClick={() => {
+              setShowAddTask(!showAddTask);
+              if (!showAddTask) {
+                // Form açıldığında sayfanın en üstüne odaklanması için küçük bir gecikme
+                setTimeout(() => {
+                  const input = document.querySelector(`[data-column-id="${column.id}"] .add-task-input`);
+                  if (input) input.focus();
+                }, 10);
+              }
+            }}
+            style={{ width: 28, height: 28, color: "var(--accent)" }}
+            title="Kart Ekle"
           >
-            <MoreHorizontal size={16} />
+            <Plus size={18} />
           </button>
+          
+          <div style={{ position: "relative" }}>
+            <button
+              className="btn btn-ghost btn-icon"
+              onClick={() => setShowMenu(!showMenu)}
+              style={{ width: 28, height: 28 }}
+            >
+              <MoreHorizontal size={16} />
+            </button>
 
           {showMenu && (
             <div
@@ -164,6 +183,7 @@ export default function Column({
               </button>
             </div>
           )}
+          </div>
         </div>
       </div>
 
@@ -178,15 +198,39 @@ export default function Column({
           background: isOver ? "rgba(99, 102, 241, 0.06)" : "transparent",
           borderRadius: "var(--radius-sm)",
           transition: "background 0.2s ease",
-          // Boş sütunsa ortaya "buraya bırak" hissi
-          ...(isOver && tasks.length === 0 ? {
-            border: "2px dashed var(--accent)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          } : {}),
+          paddingTop: showAddTask ? "0" : "4px",
         }}
       >
+        {/* Yeni Kart Ekleme Formu (Üstte) */}
+        {showAddTask && (
+          <div style={{ padding: "8px 0 12px 0", borderBottom: "1px solid var(--border-color)", marginBottom: "12px" }}>
+            <input
+              className="input add-task-input"
+              placeholder="Kart başlığı girin..."
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAddTask();
+                if (e.key === "Escape") { setShowAddTask(false); setNewTaskTitle(""); }
+              }}
+              autoFocus
+              style={{ marginBottom: 8, fontSize: "0.85rem" }}
+            />
+            <div style={{ display: "flex", gap: 6 }}>
+              <button className="btn btn-primary" onClick={handleAddTask} style={{ flex: 1, padding: "8px 12px", fontSize: "0.82rem" }}>
+                Ekle
+              </button>
+              <button
+                className="btn btn-ghost"
+                onClick={() => { setShowAddTask(false); setNewTaskTitle(""); }}
+                style={{ padding: "8px 12px", fontSize: "0.82rem" }}
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        )}
+
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => {
             const isCompletedColumn = ["tamamlandı", "done", "bitti", "tamamlanan"].some(kw => 
@@ -243,45 +287,8 @@ export default function Column({
         )}
       </div>
 
-      {/* Yeni Kart Ekleme */}
-      <div className="column-footer">
-        {showAddTask ? (
-          <div>
-            <input
-              className="input"
-              placeholder="Kart başlığı girin..."
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAddTask();
-                if (e.key === "Escape") { setShowAddTask(false); setNewTaskTitle(""); }
-              }}
-              autoFocus
-              style={{ marginBottom: 8, fontSize: "0.85rem" }}
-            />
-            <div style={{ display: "flex", gap: 6 }}>
-              <button className="btn btn-primary" onClick={handleAddTask} style={{ flex: 1, padding: "8px 12px", fontSize: "0.82rem" }}>
-                <Plus size={14} /> Kart Ekle
-              </button>
-              <button
-                className="btn btn-ghost"
-                onClick={() => { setShowAddTask(false); setNewTaskTitle(""); }}
-                style={{ padding: "8px 12px", fontSize: "0.82rem" }}
-              >
-                İptal
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            className="btn btn-ghost"
-            onClick={() => setShowAddTask(true)}
-            style={{ width: "100%", justifyContent: "flex-start", fontSize: "0.82rem", color: "var(--text-muted)" }}
-          >
-            <Plus size={16} /> Kart Ekle
-          </button>
-        )}
-      </div>
+      {/* Boş Footer */}
+      <div className="column-footer" style={{ padding: 0, height: 4 }} />
     </div>
   );
 }

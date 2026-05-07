@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { getDueDateStatus, getDueDateLabel, PRIORITIES } from "@/lib/utils";
@@ -23,6 +24,15 @@ export default function TaskCard({ task, onClick, dimmed, isCompleted }) {
     transform: CSS.Transform.toString(transform),
     transition,
   };
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const dueDateStatus = getDueDateStatus(task.due_date);
   const dueDateLabel = getDueDateLabel(task.due_date);
@@ -57,6 +67,9 @@ export default function TaskCard({ task, onClick, dimmed, isCompleted }) {
         opacity: dimmed ? 0.2 : 1,
         transition: dimmed !== undefined ? "opacity 0.3s ease, " + (style.transition || "") : style.transition,
         cursor: "grab",
+        padding: isMobile ? "14px" : "20px",
+        minHeight: isMobile ? "100px" : "120px",
+        gap: isMobile ? "8px" : "12px",
       }}
       className={`task-card ${isDragging ? "task-card-dragging" : ""}`}
       onClick={(e) => {

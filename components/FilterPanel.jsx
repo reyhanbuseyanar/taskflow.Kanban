@@ -75,7 +75,8 @@ export default function FilterPanel({ filters, onFiltersChange, tasks = [], memb
             boxShadow: "0 10px 30px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.05)",
             padding: "16px",
             zIndex: 200,
-            minWidth: "300px",
+            width: "calc(100vw - 40px)", // Mobilde ekranın çoğunu kaplasın
+            maxWidth: "300px", // Masaüstünde orijinal boyutu korusun
             animation: "slideUp 0.15s ease",
           }}
         >

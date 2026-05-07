@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { LayoutDashboard, Calendar, User, LogOut, Archive } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function MobileBottomNav({ user }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const view = searchParams.get("view");
 
   // Giriş ve Kayıt sayfalarında gösterme
   if (pathname.startsWith("/auth")) return null;
@@ -17,9 +19,24 @@ export default function MobileBottomNav({ user }) {
   };
 
   const navItems = [
-    { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    { name: "Arşiv", icon: Archive, path: "/dashboard?view=archived" },
-    { name: "Takvim", icon: Calendar, path: "/calendar" },
+    { 
+      name: "Dashboard", 
+      icon: LayoutDashboard, 
+      path: "/dashboard",
+      isActive: pathname === "/dashboard" && !view
+    },
+    { 
+      name: "Arşiv", 
+      icon: Archive, 
+      path: "/dashboard?view=archived",
+      isActive: pathname === "/dashboard" && view === "archived"
+    },
+    { 
+      name: "Takvim", 
+      icon: Calendar, 
+      path: "/calendar",
+      isActive: pathname === "/calendar"
+    },
   ];
 
   return (
@@ -29,7 +46,7 @@ export default function MobileBottomNav({ user }) {
           key={item.path}
           href={item.path}
           className={`mobile-bottom-nav-item ${
-            pathname === item.path ? "mobile-bottom-nav-item-active" : ""
+            item.isActive ? "mobile-bottom-nav-item-active" : ""
           }`}
         >
           <item.icon size={20} />
@@ -38,7 +55,8 @@ export default function MobileBottomNav({ user }) {
       ))}
       <button 
         onClick={handleLogout}
-        className="mobile-bottom-nav-item border-none bg-transparent cursor-pointer"
+        className="mobile-bottom-nav-item border-none bg-transparent cursor-pointer active:text-[var(--accent)]"
+        style={{ color: "var(--text-secondary)" }}
       >
         <LogOut size={20} />
         <span>Çıkış</span>
