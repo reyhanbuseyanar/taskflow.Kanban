@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import {
@@ -260,7 +260,7 @@ function DroppableDashboardColumn({ column, children }) {
 
 // --- ANA SAYFA ---
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const view = searchParams.get("view");
@@ -677,5 +677,13 @@ export default function DashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="auth-container">Yükleniyor...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
