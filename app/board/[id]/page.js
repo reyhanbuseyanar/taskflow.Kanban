@@ -646,7 +646,13 @@ export default function BoardPage() {
             boardTitle={board?.title}
             onClose={() => setSelectedTask(null)}
             onUpdate={(t) => setTasks(tasks.map((x) => (x.id === t.id ? t : x)))}
-            onDelete={(id) => setTasks(tasks.filter((x) => x.id !== id))}
+            onDelete={async (id) => {
+              const { error } = await supabase.from("tasks").delete().eq("id", id);
+              if (!error) {
+                setTasks(tasks.filter((x) => x.id !== id));
+                setSelectedTask(null);
+              }
+            }}
           />
         )}
 

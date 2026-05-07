@@ -267,9 +267,12 @@ export default function CalendarPage() {
             setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
             setSelectedTask(null);
           }}
-          onDelete={() => {
-            setTasks(prev => prev.filter(t => t.id !== selectedTask.id));
-            setSelectedTask(null);
+          onDelete={async (id) => {
+            const { error } = await supabase.from("tasks").delete().eq("id", id);
+            if (!error) {
+              setTasks(prev => prev.filter(t => t.id !== id));
+              setSelectedTask(null);
+            }
           }}
         />
       )}
