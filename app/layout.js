@@ -6,6 +6,7 @@ export const metadata = {
     "Sürükle-bırak ile görev yönetimi, takvim görünümü ve ekip iş birliği.",
 };
 
+import { Suspense } from "react";
 import MobileBottomNav from "@/components/MobileBottomNav";
 
 export default function RootLayout({ children }) {
@@ -19,7 +20,9 @@ export default function RootLayout({ children }) {
       </head>
       <body suppressHydrationWarning>
         {children}
-        <MobileBottomNav />
+        <Suspense fallback={null}>
+          <MobileBottomNav />
+        </Suspense>
       </body>
     </html>
   );
