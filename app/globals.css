@@ -913,14 +913,14 @@ body {
   }
 
   .column {
-    min-width: 85vw;
-    max-width: 85vw;
+    min-width: 75vw;
+    max-width: 75vw;
     margin-right: 12px;
   }
 
   .add-column-btn {
-    min-width: 80vw;
-    max-width: 80vw;
+    min-width: 70vw;
+    max-width: 70vw;
     height: 120px; /* Mobilde daha belirgin olması için yükseklik artırıldı */
     margin-right: 20px;
     background: rgba(255, 255, 255, 0.8);
@@ -1106,7 +1106,7 @@ body {
   }
 
   .column {
-    min-width: 85vw; /* Sütunlar ekranın %85'ini kaplasın */
+    min-width: 75vw; /* Sütunlar ekranın %75'ini kaplasın ki yandaki belli olsun */
     max-width: 320px;
     scroll-snap-align: center;
   }

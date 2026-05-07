@@ -78,7 +78,9 @@ export default function Column({
   return (
     <div
       ref={setSortableRef}
-      style={style}
+      {...attributes}
+      {...listeners}
+      style={{ ...style, cursor: isDragging ? "grabbing" : "grab" }}
       className={`column ${isDragging ? "column-dragging" : ""}`}
       data-column-id={column.id}
     >
@@ -87,7 +89,7 @@ export default function Column({
 
       {/* Sütun Başlık Çubuğu */}
       <div className="column-header">
-        <div className="column-header-left" {...attributes} {...listeners} style={{ cursor: "grab" }}>
+        <div className="column-header-left">
 
           {/* Renk noktası */}
           <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: accentColor, flexShrink: 0, boxShadow: `0 0 0 3px ${accentColor}20` }} />
