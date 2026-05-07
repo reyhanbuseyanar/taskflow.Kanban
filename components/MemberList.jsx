@@ -58,17 +58,18 @@ export default function MemberList({ boardId, currentUserId }) {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [message, setMessage] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
   const panelRef = useRef(null);
 
   useEffect(() => {
-    if (!boardId) {
-      setFetchLoading(false);
-      setMembers([]);
-      if (currentUserId) fetchCurrentProfile();
-      return;
-    }
     fetchMembers();
     fetchCurrentProfile();
+    
+    // Mobil kontrolü
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, [boardId, currentUserId]);
 
   // Panel dışına tıkla → kapat
@@ -87,6 +88,13 @@ export default function MemberList({ boardId, currentUserId }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showPanel]);
 
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   async function fetchCurrentProfile() {
     if (!currentUserId) return;
     const { data } = await supabase
@@ -98,22 +106,44 @@ export default function MemberList({ boardId, currentUserId }) {
   }
 
   async function fetchMembers() {
+    if (!currentUserId) return;
     setFetchLoading(true);
     try {
-      const { data: memberData, error: memberErr } = await supabase
-        .from("board_members")
-        .select("id, user_id, role, created_at")
-        .eq("board_id", boardId)
-        .order("created_at", { ascending: true });
+      let memberData = [];
+      
+      // KESİN GLOBAL ÇÖZÜM: Kullanıcının dahil olduğu TÜM projeleri bul ve üyeleri topla
+      const [ownerBoards, memberBoards] = await Promise.all([
+        supabase.from("boards").select("id").eq("user_id", currentUserId),
+        supabase.from("board_members").select("board_id").eq("user_id", currentUserId)
+      ]);
+      
+      const allBoardIds = new Set([
+        ...(ownerBoards.data || []).map(b => b.id),
+        ...(memberBoards.data || []).map(b => b.board_id)
+      ]);
 
-      if (memberErr) throw memberErr;
-      if (!memberData || memberData.length === 0) {
-        setMembers([]);
-        return;
+      if (allBoardIds.size > 0) {
+        const { data, error } = await supabase
+          .from("board_members")
+          .select("id, user_id, role, created_at")
+          .in("board_id", Array.from(allBoardIds));
+        
+        if (!error && data) {
+          const seen = new Set();
+          memberData = data.filter(m => {
+            if (seen.has(m.user_id)) return false;
+            seen.add(m.user_id);
+            return true;
+          });
+        }
+      }
+
+      // Fallback
+      if (memberData.length === 0) {
+        memberData = [{ user_id: currentUserId, role: "owner", id: "me-" + currentUserId }];
       }
 
       const userIds = memberData.map(m => m.user_id);
-
       const { data: profileData, error: profileErr } = await supabase
         .from("profiles")
         .select("id, email, full_name, title, avatar_url")
@@ -122,13 +152,13 @@ export default function MemberList({ boardId, currentUserId }) {
       if (profileErr) throw profileErr;
 
       const combinedMembers = memberData.map(m => {
-        const profile = profileData.find(p => p.id === m.user_id);
+        const profile = profileData?.find(p => p.id === m.user_id);
         return {
           id: m.id,
           role: m.role,
           user_id: m.user_id,
           created_at: m.created_at,
-          profiles: profile
+          profiles: profile || { email: "Kullanıcı", id: m.user_id } // Profil yoksa bile objeyi koru
         };
       });
 
@@ -142,12 +172,27 @@ export default function MemberList({ boardId, currentUserId }) {
 
   async function handleInvite(e) {
     e.preventDefault();
-    if (!email.trim()) return;
+    let targetBoardId = boardId;
 
-    if (!boardId) {
+    // Eğer boardId yoksa (Dashboard'daysak) kullanıcının ilk projesini bul
+    if (!targetBoardId && currentUserId) {
+      const { data: myBoards } = await supabase.from("boards").select("id").eq("user_id", currentUserId).limit(1);
+      if (myBoards && myBoards.length > 0) {
+        targetBoardId = myBoards[0].id;
+      } else {
+        const { data: memberBoards } = await supabase.from("board_members").select("board_id").eq("user_id", currentUserId).limit(1);
+        if (memberBoards && memberBoards.length > 0) {
+          targetBoardId = memberBoards[0].board_id;
+        }
+      }
+    }
+
+    if (!targetBoardId) {
       setMessage({ type: "error", text: "Önce bir proje oluşturmalısınız!" });
       return;
     }
+
+    if (!email.trim()) return;
 
     setLoading(true);
     setMessage(null);
@@ -182,35 +227,27 @@ export default function MemberList({ boardId, currentUserId }) {
 
       const { data: newMember, error: insertError } = await supabase
         .from("board_members")
-        .insert({ board_id: boardId, user_id: profile.id, role })
+        .insert({ 
+          board_id: targetBoardId, 
+          user_id: profile.id, 
+          role: role 
+        })
         .select("id, role, user_id, created_at")
         .single();
 
       if (insertError) throw insertError;
 
-      // Profil bilgisini ayrı çek
-      const { data: fullProfile } = await supabase
-        .from("profiles")
-        .select("id, email, full_name, title, avatar_url")
-        .eq("id", profile.id)
-        .single();
-
-      const memberWithProfile = {
-        ...newMember,
-        profiles: fullProfile || { id: profile.id, email: profile.email, full_name: profile.full_name, title: inviteTitle.trim() || "" },
-      };
-
-      setMembers((prev) => [...prev, memberWithProfile]);
-      setMessage({ type: "success", text: `${profile.full_name || profile.email} eklendi!` });
+      setMessage({ type: "success", text: "Kullanıcı başarıyla eklendi!" });
       setEmail("");
       setInviteTitle("");
-      setTimeout(() => setMessage(null), 2500);
+      fetchMembers();
     } catch (err) {
       setMessage({ type: "error", text: "Hata: " + err.message });
     } finally {
       setLoading(false);
     }
   }
+
 
   async function handleRemoveMember(memberId, memberName) {
     if (!confirm(`${memberName} kaldırılsın mı?`)) return;
@@ -339,22 +376,39 @@ export default function MemberList({ boardId, currentUserId }) {
 
       {/* ========== DROPDOWN PANEL ========== */}
       {showPanel && (
-        <div
-          style={{
-            position: "absolute",
-            top: "100%",
-            right: 0,
-            marginTop: "12px",
-            width: "340px",
-            background: "white",
-            borderRadius: "16px",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.06)",
-            border: "1px solid #f1f5f9",
-            overflow: "hidden",
-            zIndex: 999,
-            animation: "slideDown 0.2s ease",
-          }}
-        >
+        <>
+          {/* Mobil Arkaplan Karartma */}
+          {isMobile && (
+            <div 
+              onClick={() => setShowPanel(false)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.4)",
+                backdropFilter: "blur(4px)",
+                zIndex: 4000,
+                animation: "fadeIn 0.2s ease"
+              }}
+            />
+          )}
+          
+          <div
+            style={{
+              position: isMobile ? "fixed" : "absolute",
+              top: isMobile ? "50%" : "calc(100% + 12px)",
+              left: isMobile ? "50%" : "auto",
+              right: isMobile ? "auto" : "0",
+              transform: isMobile ? "translate(-50%, -50%)" : "none",
+              width: isMobile ? "90vw" : "340px",
+              maxWidth: "360px",
+              background: "white",
+              borderRadius: "24px",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+              zIndex: 5000,
+              overflow: "hidden",
+              animation: isMobile ? "scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)" : "slideDown 0.2s ease",
+            }}
+          >
           {/* ====== KULLANICI (Giriş yapan) ====== */}
           <div style={{
             background: "linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%)",
@@ -383,17 +437,6 @@ export default function MemberList({ boardId, currentUserId }) {
                     getInitials(currentProfile?.full_name, currentProfile?.email)
                   )}
                 </div>
-                {/* Online dot */}
-                <div style={{
-                  position: "absolute",
-                  bottom: "0",
-                  right: "0",
-                  width: "14px",
-                  height: "14px",
-                  backgroundColor: "#10b981",
-                  borderRadius: "50%",
-                  border: "2px solid white",
-                }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -405,10 +448,6 @@ export default function MemberList({ boardId, currentUserId }) {
                 <p style={{ fontSize: "0.72rem", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: "2px" }}>
                   {currentProfile?.email}
                 </p>
-                <div style={{ display: "flex", alignItems: "center", gap: "5px", marginTop: "4px" }}>
-                  <div style={{ width: "7px", height: "7px", backgroundColor: "#10b981", borderRadius: "50%" }} />
-                  <span style={{ fontSize: "0.65rem", fontWeight: 600, color: "#10b981" }}>Çevrimiçi</span>
-                </div>
               </div>
             </div>
           </div>
@@ -720,6 +759,7 @@ export default function MemberList({ boardId, currentUserId }) {
             </button>
           </div>
         </div>
+        </>
       )}
     </div>
   );
