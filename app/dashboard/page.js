@@ -75,7 +75,7 @@ function formatDate(dateStr) {
 
 // --- DND BİLEŞENLERİ ---
 
-function SortableBoardCard({ board, boardTasks, colColor, onRename, onDelete, onNavigate }) {
+function SortableBoardCard({ board, boardTasks, colColor, onRenameClick, onArchiveClick, onDelete, onNavigate }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -119,7 +119,7 @@ function SortableBoardCard({ board, boardTasks, colColor, onRename, onDelete, on
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={(e) => onRename(e, board.id, board.title)}
+            onClick={(e) => { e.stopPropagation(); onRenameClick(board.id, board.title); }}
             style={{ background: "#f8fafc", border: "none", cursor: "pointer", color: "#94a3b8", width: "32px", height: "32px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}
             onMouseOver={e => { e.currentTarget.style.color = "#6366f1"; e.currentTarget.style.background = "#eef2ff"; }}
             onMouseOut={e => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.background = "#f8fafc"; }}
@@ -128,39 +128,28 @@ function SortableBoardCard({ board, boardTasks, colColor, onRename, onDelete, on
           </button>
           {/* Arşivle / Arşivden Çıkar Butonu */}
           <button
-            onClick={async (e) => { 
-              e.stopPropagation(); 
-              const actionLabel = board.is_archived ? "arşivden çıkarılsın" : "arşive kaldırılsın";
-              if (window.confirm(`"${board.title}" panosu ${actionLabel} mı?`)) {
-                const { error } = await supabase.from("boards").update({ is_archived: !board.is_archived }).eq("id", board.id);
-                if (error) {
-                  alert("Hata oluştu: " + error.message + "\n\nNot: Veritabanında 'is_archived' sütunu bulunmuyor olabilir.");
-                } else {
-                  window.location.reload();
-                }
-              }
-            }}
+            onClick={(e) => { e.stopPropagation(); onArchiveClick(board); }}
             title={board.is_archived ? "Arşivden Çıkar" : "Arşivle"}
-            style={{ 
-              background: board.is_archived ? "#fef3c7" : "#f8fafc", 
-              border: "none", 
-              cursor: "pointer", 
-              color: board.is_archived ? "#d97706" : "#94a3b8", 
-              width: "32px", 
-              height: "32px", 
-              borderRadius: "8px", 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: "center", 
-              transition: "all 0.2s" 
+            style={{
+              background: board.is_archived ? "#fef3c7" : "#f8fafc",
+              border: "none",
+              cursor: "pointer",
+              color: board.is_archived ? "#d97706" : "#94a3b8",
+              width: "32px",
+              height: "32px",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s"
             }}
-            onMouseOver={e => { 
-              e.currentTarget.style.color = "#f59e0b"; 
-              e.currentTarget.style.background = "#fffbeb"; 
+            onMouseOver={e => {
+              e.currentTarget.style.color = "#f59e0b";
+              e.currentTarget.style.background = "#fffbeb";
             }}
-            onMouseOut={e => { 
-              e.currentTarget.style.color = board.is_archived ? "#d97706" : "#94a3b8"; 
-              e.currentTarget.style.background = board.is_archived ? "#fef3c7" : "#f8fafc"; 
+            onMouseOut={e => {
+              e.currentTarget.style.color = board.is_archived ? "#d97706" : "#94a3b8";
+              e.currentTarget.style.background = board.is_archived ? "#fef3c7" : "#f8fafc";
             }}
           >
             <Archive size={16} />
@@ -273,6 +262,10 @@ function DashboardContent() {
   const [user, setUser] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
   const [activeBoard, setActiveBoard] = useState(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [renameData, setRenameData] = useState({ id: null, title: "" });
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [archiveData, setArchiveData] = useState({ id: null, title: "", is_archived: false });
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -397,14 +390,23 @@ function DashboardContent() {
     }
   };
 
-  const renameBoard = async (e, boardId, currentTitle) => {
-    e.preventDefault(); e.stopPropagation();
-    const newTitle = prompt("Yeni proje adını girin:", currentTitle);
-    if (!newTitle || newTitle.trim() === "" || newTitle.trim() === currentTitle) return;
-    setBoards(boards.map(b => b.id === boardId ? { ...b, title: newTitle.trim() } : b));
-    const { error } = await supabase.from("boards").update({ title: newTitle.trim() }).eq("id", boardId);
+  const handleRenameSubmit = async () => {
+    if (!renameData.title.trim()) return;
+    setBoards(boards.map(b => b.id === renameData.id ? { ...b, title: renameData.title.trim() } : b));
+    setShowRenameModal(false);
+    const { error } = await supabase.from("boards").update({ title: renameData.title.trim() }).eq("id", renameData.id);
     if (error) {
       alert("Güncelleme hatası: " + error.message);
+      await fetchData(user.id);
+    }
+  };
+
+  const handleArchiveSubmit = async () => {
+    const { error } = await supabase.from("boards").update({ is_archived: !archiveData.is_archived }).eq("id", archiveData.id);
+    setShowArchiveModal(false);
+    if (error) {
+      alert("Hata oluştu: " + error.message + "\n\nNot: Veritabanında 'is_archived' sütunu bulunmuyor olabilir.");
+    } else {
       await fetchData(user.id);
     }
   };
@@ -520,12 +522,12 @@ function DashboardContent() {
       <main className="main-content" style={{ background: "#f1f5f9", display: "flex", flexDirection: "column" }}>
 
         <div style={{
-          padding: isMobile ? "16px" : "20px 36px", 
-          background: "white", 
+          padding: isMobile ? "16px" : "20px 36px",
+          background: "white",
           borderBottom: "1px solid #e2e8f0",
-          display: "flex", 
+          display: "flex",
           flexDirection: isMobile ? "column" : "row",
-          justifyContent: "space-between", 
+          justifyContent: "space-between",
           alignItems: isMobile ? "flex-start" : "center",
           gap: isMobile ? "12px" : "0"
         }}>
@@ -536,9 +538,9 @@ function DashboardContent() {
               {urgentCount > 0 && <span style={{ color: "#ef4444", fontWeight: 700 }}> · {urgentCount} acil!</span>}
             </p>
           </div>
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
+          <div style={{
+            display: "flex",
+            alignItems: "center",
             gap: "16px",
             width: isMobile ? "100%" : "auto",
             justifyContent: isMobile ? "space-between" : "flex-end"
@@ -563,12 +565,12 @@ function DashboardContent() {
               const IconComp = col.icon;
 
               return (
-                <div 
-                  key={col.key} 
-                  style={{ 
-                    borderRight: index === DASHBOARD_COLUMNS.length - 1 ? "none" : "1px solid #e2e8f0", 
-                    display: "flex", 
-                    flexDirection: "column", 
+                <div
+                  key={col.key}
+                  style={{
+                    borderRight: index === DASHBOARD_COLUMNS.length - 1 ? "none" : "1px solid #e2e8f0",
+                    display: "flex",
+                    flexDirection: "column",
                     background: "white",
                     height: "100%"
                   }}
@@ -596,7 +598,8 @@ function DashboardContent() {
                             board={board}
                             boardTasks={boardTasks}
                             colColor={col.color}
-                            onRename={renameBoard}
+                            onRenameClick={(id, title) => { setRenameData({ id, title }); setShowRenameModal(true); }}
+                            onArchiveClick={(board) => { setArchiveData(board); setShowArchiveModal(true); }}
                             onDelete={deleteBoard}
                             onNavigate={(id) => router.push(`/board/${id}`)}
                           />
@@ -689,6 +692,55 @@ function DashboardContent() {
               {selectedTemplate && (
                 <button className="btn btn-primary" onClick={createBoard} disabled={!newBoardTitle.trim()}>Oluştur</button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rename Modal */}
+      {showRenameModal && (
+        <div className="modal-overlay" onClick={() => setShowRenameModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "400px" }}>
+            <div className="modal-header">
+              <h2 style={{ fontSize: "1.15rem", fontWeight: 700 }}>Panoyu Yeniden Adlandır</h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowRenameModal(false)}><X size={18} /></button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">YENİ PANO ADI</label>
+                <input
+                  className="input"
+                  value={renameData.title}
+                  onChange={(e) => setRenameData({ ...renameData, title: e.target.value })}
+                  onKeyDown={(e) => e.key === "Enter" && handleRenameSubmit()}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowRenameModal(false)}>İptal</button>
+              <button className="btn btn-primary" onClick={handleRenameSubmit} disabled={!renameData.title.trim()}>Kaydet</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Archive Modal */}
+      {showArchiveModal && (
+        <div className="modal-overlay" onClick={() => setShowArchiveModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "400px" }}>
+            <div className="modal-header">
+              <h2 style={{ fontSize: "1.15rem", fontWeight: 700 }}>{archiveData.is_archived ? "Arşivden Çıkar" : "Arşive Kaldır"}</h2>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowArchiveModal(false)}><X size={18} /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ color: "#475569", fontSize: "0.95rem", lineHeight: "1.5" }}>
+                <strong>"{archiveData.title}"</strong> panosunu {archiveData.is_archived ? "arşivden çıkarmak" : "arşive kaldırmak"} istediğinize emin misiniz?
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowArchiveModal(false)}>İptal</button>
+              <button className="btn btn-primary" onClick={handleArchiveSubmit}>Evet, Onaylıyorum</button>
             </div>
           </div>
         </div>

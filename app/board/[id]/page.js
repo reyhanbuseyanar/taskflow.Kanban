@@ -131,7 +131,7 @@ export default function BoardPage() {
         .from("board_members")
         .select("user_id")
         .eq("board_id", boardId);
-      
+
       if (mData?.length > 0) {
         const { data: pData } = await supabase
           .from("profiles")
@@ -407,13 +407,25 @@ export default function BoardPage() {
     // ===== ÇÖP KUTUSUNA BIRAKMA =====
     if (over.id === "trash-zone" && active.data.current?.type === "task") {
       setTasks((prev) => prev.filter((t) => t.id !== active.id));
+
+      // Sütunun içerisindeki listeden de anında sil (Ekrandan kaybolması için kritik)
+      setColumns(cols => cols.map(c => ({
+        ...c,
+        tasks: c.tasks ? c.tasks.filter(t => t.id !== active.id) : []
+      })));
+
       try {
         await supabase.from("checklists").delete().eq("task_id", active.id);
         const { error } = await supabase.from("tasks").delete().eq("id", active.id);
         if (error) throw error;
       } catch (err) {
-        alert("Silme hatası: " + err.message);
+        window.alert("Silme hatası: " + err.message);
         setTasks(previousTasksRef.current);
+        // Hata olursa sütunları da geri al
+        setColumns(previousTasksRef.current ? cols => cols.map(c => ({
+          ...c,
+          tasks: previousTasksRef.current.filter(t => t.column_id === c.id)
+        })) : cols => cols);
       }
       return;
     }
@@ -649,10 +661,23 @@ export default function BoardPage() {
             onClose={() => setSelectedTask(null)}
             onUpdate={(t) => setTasks(tasks.map((x) => (x.id === t.id ? t : x)))}
             onDelete={async (id) => {
-              const { error } = await supabase.from("tasks").delete().eq("id", id);
-              if (!error) {
-                setTasks(tasks.filter((x) => x.id !== id));
+              try {
+                const { error } = await supabase.from("tasks").delete().eq("id", id);
+                if (error) throw error;
+
+                // Ana listeden güvenli (prev) state silimi
+                setTasks(prev => prev.filter((x) => x.id !== id));
+
+                // Sütunların içindeki listeden de sil
+                setColumns(cols => cols.map(c => ({
+                  ...c,
+                  tasks: c.tasks ? c.tasks.filter(t => t.id !== id) : []
+                })));
+
                 setSelectedTask(null);
+              } catch (err) {
+                console.error("Görev silinirken hata oluştu:", err);
+                window.alert("Görev silinemedi. Lütfen sayfayı yenileyip tekrar deneyin.");
               }
             }}
           />
@@ -797,7 +822,7 @@ export default function BoardPage() {
                     <span style={{ fontSize: "0.6rem", fontWeight: 900, color: "#e11d48", letterSpacing: "0.12em", textTransform: "uppercase" }}>Yaklaşan</span>
                   </div>
                   <p style={{ fontSize: "2rem", lineHeight: 1, fontWeight: 700, color: "#be123c", fontFamily: "Georgia, serif", margin: "0" }}>{summaryStats.upcomingCount}</p>
-                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#f43f5e", margin: "0" }}>vade yaklaşıyor</p>
+                  <p style={{ fontSize: "0.7rem", fontWeight: 600, color: "#f43f5e", margin: "0" }}>son teslim yaklaşıyor</p>
                 </div>
               </div>
 
@@ -820,7 +845,7 @@ export default function BoardPage() {
                         const progPct = (summaryStats.inProgressCount / total) * 100;
                         const otherPct = (summaryStats.otherCount / total) * 100;
                         const slices = [];
-                        
+
                         if (donePct > 0) {
                           slices.push(<circle key="done" cx="18" cy="18" r="15.915" fill="none" stroke="#16a34a" strokeWidth="3.8" strokeDasharray={`${donePct} ${100 - donePct}`} strokeDashoffset={-offset} strokeLinecap="round" />);
                           offset += donePct;

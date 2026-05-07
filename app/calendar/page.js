@@ -147,23 +147,23 @@ export default function CalendarPage() {
       <Sidebar user={user} />
       <main className="main-content">
         <div style={{ 
-          padding: window.innerWidth < 768 ? "16px" : "40px", 
+          padding: isMobile ? "12px" : "40px", 
           maxWidth: "1200px", 
           margin: "0 auto" 
         }}>
           <header style={{ 
             marginBottom: "24px", 
             display: "flex", 
-            flexDirection: window.innerWidth < 768 ? "column" : "row",
+            flexDirection: isMobile ? "column" : "row",
             justifyContent: "space-between", 
-            alignItems: window.innerWidth < 768 ? "flex-start" : "center",
+            alignItems: isMobile ? "flex-start" : "center",
             gap: "16px"
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <div style={{ background: "var(--accent)", color: "white", padding: "10px", borderRadius: "12px" }}>
                 <CalendarIcon size={24} />
               </div>
-              <h1 style={{ fontSize: window.innerWidth < 768 ? "1.4rem" : "1.75rem", fontWeight: 800 }}>Etkinlik Takvimi</h1>
+              <h1 style={{ fontSize: isMobile ? "1.4rem" : "1.75rem", fontWeight: 800 }}>Etkinlik Takvimi</h1>
             </div>
 
             <div style={{ 
@@ -184,8 +184,8 @@ export default function CalendarPage() {
             </div>
           </header>
 
-          <div className="calendar-container" style={{ overflowX: "auto", borderRadius: "12px", border: "1px solid var(--border-color)", background: "white" }}>
-            <div className="calendar-grid" style={{ minWidth: isMobile ? "100%" : "auto", background: "transparent", gap: "0" }}>
+          <div className="calendar-container" style={{ overflowX: "hidden", borderRadius: "12px", border: "1px solid var(--border-color)", background: "white", padding: isMobile ? "8px" : "24px" }}>
+            <div className="calendar-grid" style={{ minWidth: "100%", background: "transparent", gap: "0" }}>
               {["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"].map(day => (
                 <div key={day} className="calendar-day-header" style={{ padding: isMobile ? "8px 4px" : "12px", fontSize: isMobile ? "0.6rem" : "0.75rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>{day}</div>
               ))}
@@ -299,10 +299,15 @@ export default function CalendarPage() {
             setSelectedTask(null);
           }}
           onDelete={async (id) => {
-            const { error } = await supabase.from("tasks").delete().eq("id", id);
-            if (!error) {
+            try {
+              const { error } = await supabase.from("tasks").delete().eq("id", id);
+              if (error) throw error;
+              
               setTasks(prev => prev.filter(t => t.id !== id));
               setSelectedTask(null);
+            } catch (err) {
+              console.error("Takvimde görev silinirken hata oluştu:", err);
+              window.alert("Görev silinemedi. İnternet bağlantınızı kontrol edip sayfayı yenileyin.");
             }
           }}
         />

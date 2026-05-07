@@ -250,16 +250,16 @@ export default function MemberList({ boardId, currentUserId }) {
 
 
   async function handleRemoveMember(memberId, memberName) {
-    if (!confirm(`${memberName} kaldırılsın mı?`)) return;
     try {
       const { error } = await supabase.from("board_members").delete().eq("id", memberId);
       if (error) throw error;
       setMembers((prev) => prev.filter((m) => m.id !== memberId));
       setOpenMenuId(null);
     } catch (err) {
-      alert("Silinemedi: " + err.message);
+      window.alert("Silinemedi: " + err.message);
     }
   }
+
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -657,68 +657,32 @@ export default function MemberList({ boardId, currentUserId }) {
                     </div>
                   </div>
 
-                  {/* Sağ taraf: ... menü */}
+                  {/* Sağ taraf: Direkt Kaldır Butonu */}
                   {!isOwner && (
-                    <div style={{ position: "relative" }}>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === member.id ? null : member.id); }}
-                        style={{
-                          width: "28px",
-                          height: "28px",
-                          borderRadius: "6px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          border: "none",
-                          background: "none",
-                          color: "#94a3b8",
-                          cursor: "pointer",
-                          transition: "all 0.15s",
-                        }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "#f1f5f9"; e.currentTarget.style.color = "#475569"; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#94a3b8"; }}
-                      >
-                        <MoreHorizontal size={15} />
-                      </button>
-                      {openMenuId === member.id && (
-                        <div style={{
-                          position: "absolute",
-                          right: 0,
-                          top: "100%",
-                          marginTop: "4px",
-                          background: "white",
-                          borderRadius: "10px",
-                          boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-                          border: "1px solid #f1f5f9",
-                          padding: "4px",
-                          zIndex: 50,
-                          minWidth: "130px",
-                        }}>
-                          <button
-                            onClick={() => handleRemoveMember(member.id, profile?.full_name || profile?.email)}
-                            style={{
-                              width: "100%",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                              padding: "8px 12px",
-                              fontSize: "0.75rem",
-                              color: "#ef4444",
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              borderRadius: "6px",
-                              transition: "background 0.15s",
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "#fef2f2"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "none"; }}
-                          >
-                            <Trash2 size={13} />
-                            Kaldır
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <button
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        handleRemoveMember(member.id, profile?.full_name || profile?.email);
+                      }}
+                      title="Takımdan Çıkar"
+                      style={{
+                        width: "30px",
+                        height: "30px",
+                        borderRadius: "8px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "none",
+                        background: "#fef2f2",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "#fee2e2"; e.currentTarget.style.transform = "scale(1.05)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "#fef2f2"; e.currentTarget.style.transform = "scale(1)"; }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
                   )}
                 </div>
               );

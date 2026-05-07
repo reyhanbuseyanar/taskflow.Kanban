@@ -282,7 +282,9 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
                   <Save size={16} /> Kaydet
                 </button>
                 <button
-                  onClick={() => { if (window.confirm("Silinsin mi?")) onDelete(task.id); onClose(); }}
+                  onClick={async () => { 
+                    await onDelete(task.id); 
+                  }}
                   className="w-full h-12 bg-red-50 hover:bg-red-100 text-red-600 text-[14px] font-bold rounded-2xl transition-colors flex items-center justify-center gap-2"
                 >
                   <Trash2 size={16} /> Kartı Sil
