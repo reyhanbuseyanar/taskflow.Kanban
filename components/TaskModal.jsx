@@ -186,19 +186,26 @@ export default function TaskModal({ task, boardId, boardTitle, onClose, onUpdate
                 <label className="text-[11.5px] font-bold text-slate-500 flex items-center gap-2 tracking-widest uppercase ml-1">
                   <Calendar size={14} /> Teslim Tarihi
                 </label>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full h-12 bg-white border-2 border-slate-200 rounded-2xl text-[14.5px] font-semibold text-slate-700 outline-none hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-50 shadow-sm cursor-pointer transition-all"
-                  style={{ 
-                    colorScheme: "light", 
-                    padding: "0 28px", 
-                    display: "block", 
-                    boxSizing: "border-box",
-                    minWidth: "0" // Mobilde taşmayı önlemek için
-                  }}
-                />
+                <div className="relative w-full overflow-hidden">
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="w-full h-12 appearance-none bg-white border-2 border-slate-200 rounded-2xl text-[14.5px] font-semibold text-slate-700 outline-none hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-50 shadow-sm cursor-pointer transition-all"
+                    style={{
+                      colorScheme: "light",
+                      padding: isMobile ? "14px 28px 0" : "12px 28px 0",
+                      display: "block",
+                      boxSizing: "border-box",
+                      width: "100%",
+                      minWidth: "0",
+                      maxWidth: "100%",
+                      WebkitAppearance: "none",
+                      MozAppearance: "none",
+                      appearance: "none"
+                    }}
+                  />
+                </div>
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>

@@ -921,11 +921,13 @@ body {
   .add-column-btn {
     min-width: 70vw;
     max-width: 70vw;
-    height: 120px; /* Mobilde daha belirgin olması için yükseklik artırıldı */
+    height: 120px;
+    /* Mobilde daha belirgin olması için yükseklik artırıldı */
     margin-right: 20px;
     background: rgba(255, 255, 255, 0.8);
     border: 2px dashed #cbd5e1;
-    scroll-snap-align: center; /* Sütunlar gibi ortalanarak kaysın */
+    scroll-snap-align: center;
+    /* Sütunlar gibi ortalanarak kaysın */
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -1066,12 +1068,14 @@ body {
 /* MOBILE COMPACT DESIGN (max-width: 768px) */
 @media (max-width: 768px) {
   .sidebar {
-    display: none; /* Mobilde sidebar'ı gizle */
+    display: none;
+    /* Mobilde sidebar'ı gizle */
   }
 
   .main-content {
     margin-left: 0 !important;
-    padding-bottom: 80px; /* Alttaki bar için yer bırak */
+    padding-bottom: 80px;
+    /* Alttaki bar için yer bırak */
   }
 
   .board-header-premium {
@@ -1102,11 +1106,13 @@ body {
   .board-container {
     gap: 16px;
     padding: 12px 16px 100px;
-    scroll-snap-type: x mandatory; /* Sütunlar arası akıcı geçiş */
+    scroll-snap-type: x mandatory;
+    /* Sütunlar arası akıcı geçiş */
   }
 
   .column {
-    min-width: 75vw; /* Sütunlar ekranın %75'ini kaplasın ki yandaki belli olsun */
+    min-width: 75vw;
+    /* Sütunlar ekranın %75'ini kaplasın ki yandaki belli olsun */
     max-width: 320px;
     scroll-snap-align: center;
   }
@@ -1210,7 +1216,8 @@ body {
 
 @media (max-width: 768px) {
   .summary-grid-container {
-    grid-template-columns: repeat(2, 1fr); /* Mobilde 2x2 düzen */
+    grid-template-columns: repeat(2, 1fr);
+    /* Mobilde 2x2 düzen */
     gap: 8px;
   }
 
@@ -1238,17 +1245,30 @@ body {
 
 @media (max-width: 480px) {
   .summary-grid-container {
-    grid-template-columns: 1fr; /* Çok küçük ekranlarda alt alta */
+    grid-template-columns: 1fr;
+    /* Çok küçük ekranlarda alt alta */
   }
 }
 
 /* ===== CUSTOM ANIMATIONS ===== */
 @keyframes scaleUp {
-  0% { opacity: 0; transform: translate(-50%, -45%) scale(0.95); }
-  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -45%) scale(0.95);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 @keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
